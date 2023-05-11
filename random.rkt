@@ -123,7 +123,7 @@
    (/ (free-vars e) (x ...))]
   [(free-vars (if e_1 e_2 e_3))
    (∪ (free-vars e_1) (free-vars e_2) (free-vars e_3))]
-  [(free-vars (monitor ctc e blame_1 blame_2))
+  [(free-vars (monitor ctc e any_blame1 any_blame2))
    (∪ (free-vars ctc) (free-vars e))]
   [(free-vars (flat v))
    (free-vars v)]

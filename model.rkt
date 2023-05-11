@@ -3,8 +3,9 @@
 ;; base language for abort/ctc model
 
 (require redex/pict
-         redex/reduction-semantics
-         (for-syntax syntax/parse))
+         rackunit
+         redex/reduction-semantics 
+        (for-syntax syntax/parse))
 
 (provide abort-core-lang
          abort-lang
@@ -262,8 +263,8 @@
         (side-condition (not (equal? (term E) (term hole)))))
 
    with
-   [(==> (<> (in-hole E a) σ) (<> (in-hole E b) σ))
-    (--> a b)]))
+   [(==> (<> (in-hole E a) σ) (<> (in-hole E aa) σ))
+    (--> a aa)]))
 
 ;; wrapping contracts
 (define-metafunction abort-lang

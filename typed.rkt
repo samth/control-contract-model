@@ -109,8 +109,8 @@
         error)
 
    with
-   [(==> (in-hole E a) (in-hole E b))
-    (--> a b)]))
+   [(==> (in-hole E a) (in-hole E aa))
+    (--> a aa)]))
 
 ;; type checking
 (define-extended-language abort+Γ typed-abort-lang

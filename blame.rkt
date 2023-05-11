@@ -200,10 +200,10 @@
         (side-condition (not (equal? (term E) (term hole)))))
 
    with
-   [(==> (<> a σ) (<> b σ))
-    (:--> a b)]
-   [(==> (<> (in-hole E a) σ) (<> (in-hole E b) σ))
-    (--> a b)]))
+   [(==> (<> a σ) (<> aa σ))
+    (:--> a aa)]
+   [(==> (<> (in-hole E a) σ) (<> (in-hole E aa) σ))
+    (--> a aa)]))
 
 ;; well-formed source programs
 (define-judgment-form
