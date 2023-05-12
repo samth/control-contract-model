@@ -176,32 +176,32 @@
    (continuation-prompt-tag? (racket-eval (term (make-prompt-tag)))))
   (check-equal?
    (racket-eval
-    (term (let pt (make-prompt-tag)
+    (term (let ([(pt : Num) (make-prompt-tag)])
             (% (abort pt 5)
                pt
                (λ (x) (+ x 1))))))
    6)
   (check-equal?
    (racket-eval
-    (term (let do-prompt
-            (let pt (make-prompt-tag)
-              (monitor (-> (-> (prompt-tag/c (-> (flat (λ (x) (number? x)))
-                                                 (flat (λ (x) (number? x)))))
-                               (flat (λ (x) (void? x))))
-                           (flat (λ (x) (number? x))))
-                       (λ (f) (% (f pt)
-                                 pt
-                                 (λ (f) (f 0))))
-                       "A"
-                       "B"))
-            (let do-prompt-2
-              (monitor (-> (-> (prompt-tag/c (-> (flat (λ (x) (string? x)))
-                                                 (flat (λ (x) (number? x)))))
-                               (flat (λ (x) (void? x))))
-                           (flat (λ (x) (number? x))))
-                       (λ (f) (do-prompt f))
-                       "B"
-                       "C")
+    (term (let ([(do-prompt : Num)
+                 (let ([(pt : Num) (make-prompt-tag)])
+                   (monitor (-> (-> (prompt-tag/c (-> (flat (λ (x) (number? x)))
+                                                      (flat (λ (x) (number? x)))))
+                                    (flat (λ (x) (void? x))))
+                                (flat (λ (x) (number? x))))
+                            (λ (f) (% (f pt)
+                                      pt
+                                      (λ (f) (f 0))))
+                            "A"
+                                      "B"))])
+            (let ([(do-prompt-2 : Num)
+                   (monitor (-> (-> (prompt-tag/c (-> (flat (λ (x) (string? x)))
+                                                      (flat (λ (x) (number? x)))))
+                                    (flat (λ (x) (void? x))))
+                                (flat (λ (x) (number? x))))
+                            (λ (f) (do-prompt f))
+                            "B"
+                            "C")])
               (do-prompt-2 (λ (pt) (abort pt (λ (v) (+ v 1)))))))))
    '(ctc-error "B")))
 

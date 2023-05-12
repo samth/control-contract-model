@@ -338,7 +338,7 @@
 
 ;; just for convenience
 (define-metafunction abort-lang
-  [(let ([(x : t) e_1]) e_2) ((λ (x : t) e_2) e_1)])
+  [(let ([(x : any_t) any_e1]) any_e2) ((λ (x : any_t) any_e2) any_e1)])
 
 ;; type checking
 (define-extended-language abort+Γ-lang abort-lang
