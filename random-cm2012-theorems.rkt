@@ -159,6 +159,12 @@
 (define (num->num-contract)
   `(-> ,(number-flat-contract) ,(number-flat-contract)))
 
+(define bad-preservation-loose-input
+  '(own (μ (x : Num) 0) "μ"))
+
+(define bad-preservation-loose-output
+  '(own 0 "μ"))
+
 (define (interesting-candidate-exprs)
   (remove-duplicates
    (append
@@ -172,12 +178,14 @@
      '(λ (x : Num) x)
      '(λ (x : Bool) x)
      '(μ (x : Num) x)
-     '(ctc-error "k" "j")
-     '((ctc-error "k" "j") unit)
-     '(((ctc-error "k" "j") unit) unit)
-     '(f (μ (x : Num) x))
-     '(if #t 0 1)
-     '(if #f 0 1)
+	     '(ctc-error "k" "j")
+	     '((ctc-error "k" "j") unit)
+	     '(((ctc-error "k" "j") unit) unit)
+	     '(f (μ (x : Num) x))
+	     bad-preservation-loose-input
+	     bad-preservation-loose-output
+	     '(if #t 0 1)
+	     '(if #f 0 1)
      '(if (ctc-error "k" "j") 0 1)
      '(check #t 0 "τ" "j")
      '(check #f 0 "τ" "j")
@@ -273,6 +281,26 @@
                           (not (lean-step-expr result))))
     (hasheq 'expr expr
             'redex-nexts nexts)))
+
+(define (find-preservation-loose-counterexample exprs results)
+  (define input-result
+    (for/first ([pair (in-list (map list exprs results))]
+                #:when (equal? (first pair) bad-preservation-loose-input))
+      (second pair)))
+  (define output-result
+    (for/first ([pair (in-list (map list exprs results))]
+                #:when (equal? (first pair) bad-preservation-loose-output))
+      (second pair)))
+  (and input-result
+       output-result
+       (hash-ref input-result 'initialRepairWF)
+       (member bad-preservation-loose-output (redex-nexts bad-preservation-loose-input) equal?)
+       (not (hash-ref output-result 'initialIntermWF))
+       (hasheq 'expr bad-preservation-loose-input
+               'redex-next bad-preservation-loose-output
+               'lean-initial-repair (hash-ref input-result 'initialRepairWF)
+               'lean-initial-interm-after-step
+               (hash-ref output-result 'initialIntermWF))))
 
 (define (find-step-simulation-counterexample exprs results #:fuel [fuel 6])
   (for/first ([pair (in-list (map list exprs results))]
@@ -370,6 +398,8 @@
     (find-step-complete-exact-counterexample candidates candidate-results))
   (define ce-complete-exists
     (find-step-complete-exists-counterexample candidates candidate-results))
+  (define ce-preservation-loose
+    (find-preservation-loose-counterexample candidates candidate-results))
   (unless ce-sound-exact
     (error 'run-cm2012-theorem-checks!
            "failed to refute the known-false exact step soundness statement"))
@@ -383,6 +413,9 @@
   (unless ce-complete-exists
     (error 'run-cm2012-theorem-checks!
            "failed to refute the known-false existential step completeness statement"))
+  (unless ce-preservation-loose
+    (error 'run-cm2012-theorem-checks!
+           "failed to refute the known-false repair single-step preservation statement"))
   (define ce-step-sim
     (find-step-simulation-counterexample
      candidates candidate-results
@@ -432,6 +465,7 @@
     (printf "  step soundness exact target\n")
     (printf "  step completeness exact target\n")
     (printf "  step completeness existential target\n")
+    (printf "  repair single-step preservation (preservation_loose)\n")
     (printf "bounded-valid theorem shapes:\n")
     (printf "  infer-type correspondence\n")
     (printf "  step simulation\n")
