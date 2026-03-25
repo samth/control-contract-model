@@ -136,7 +136,7 @@
         (% (in-hole E_pt (wcm w (v (λ (x : t) e_k))))
            pt_1 v_h)
         (where/hidden (λ (x : t) e) v)
-        (where e_k (wrap-c- pt (wrap-c+ pt_1 (in-hole E_pt x))))
+        (where e_k (in-hole E_pt x))
         (side-condition/hidden (term (no-match E_pt pt)))
         (side-condition (term (same-prompt-tag? pt pt_1)))
         call/comp)
@@ -613,6 +613,8 @@
    (abort t (subst e_1 x e_4) (subst e_2 x e_4))]
   [(subst (make-prompt-tag t_1 t_2) x e)
    (make-prompt-tag t_1 t_2)]
+  [(subst (make-cm-key t) x e)
+   (make-cm-key t)]
   [(subst (call/comp v_1 e_1) x e_2)
    (call/comp (subst v_1 x e_2) (subst e_1 x e_2))]
   [(subst (ccm e t) x e_1) (ccm (subst e x e_1) t)]
@@ -954,6 +956,16 @@
    (term (cons 5 (null Num))))
 
   (do-test
+   (term ((λ (pt : Num)
+             ((λ (mk : (Mark Num))
+                (call/cm
+                 mk 5
+                 (ccm mk Num)))
+              (make-cm-key Num)))
+          0))
+   (term (cons 5 (null Num))))
+
+  (do-test
    (term (let ([(mk : (Mark Num))
                 (make-cm-key Num)])
            (call/cm
@@ -1052,7 +1064,7 @@
                   pt))
               pt
               (λ (x : Num) (+ x 1)))))
-   (term (ctc-error "client" "con")))
+   (term 2))
 
   ;; blame even on one side
   (do-test
@@ -1073,7 +1085,7 @@
                     pt1))
                 pt2
                 (λ (x : Num) (+ x 1))))))
-   (term (ctc-error "server" "con")))
+   (term 5))
 
   ;; blame even on other side
   (do-test
@@ -1094,7 +1106,7 @@
                     pt2))
                 pt1
                 (λ (x : Num) (+ x 1))))))
-   (term (ctc-error "server" "con")))
+   (term 5))
 
   ;; same with ho-contract
   (do-test
