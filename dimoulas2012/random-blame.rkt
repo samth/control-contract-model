@@ -1,10 +1,20 @@
 #lang racket
 
+;; Dimoulas 2012 — randomized blame-correctness testing.
+;;
+;; Exercises the well-formedness judgments defined in blame.rkt
+;; (wfp, wfctc, wfip, lwfp, ctcwitnessp) on generated programs to catch
+;; issues in the blame-witness / complete-monitoring statements.
+;;
+;; Lean counterpart:
+;;   - ContractModels.Dimoulas2012.Witness.ctcError_has_witness
+;;   - ContractModels.Dimoulas2012.CompleteMonitoring.completeMonitoring
+
 (require racket/list
          racket/match
          rackunit
          redex/reduction-semantics
-         (except-in "model.rkt" let)
+         (except-in "../takikawa2013/model.rkt" let)
          "blame.rkt")
 
 (provide run-blame-random-checks!)

@@ -1,12 +1,20 @@
 #lang racket
 
+;; Dimoulas 2012 — randomized differential testing for the operational
+;; 2012 CM model (model.rkt). Exercises the Redex <-> Lean <-> Typed-Racket
+;; correspondence for evaluation, type inference, and contract inference.
+;;
+;; Mirrors Lean side:
+;;   - ContractModels.Dimoulas2012.Executable.InferTypeProof
+;;   - ContractModels.Dimoulas2012.Executable.Theorems
+
 (require json
          racket/list
          racket/match
          racket/runtime-path
          rackunit
          redex/reduction-semantics
-         "cm2012.rkt")
+         "model.rkt")
 
 (provide run-cm2012-random-checks!
          lean-run-batches

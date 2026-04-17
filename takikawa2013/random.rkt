@@ -1,5 +1,13 @@
 #lang racket
 
+;; Takikawa 2013 — randomized differential testing for the 2013 model.
+;;
+;; Exercises the Redex <-> Lean <-> Typed-Racket correspondence for
+;; evaluation (`redex-eval/answer`) and for the paper's mixed-language
+;; soundness / complete-monitoring properties.
+;;
+;; Lean counterpart: Takikawa2013.Theorems, Takikawa2013.InterpreterTheorems.
+
 (require racket/contract
          json
          racket/list

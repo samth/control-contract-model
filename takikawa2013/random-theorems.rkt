@@ -1,5 +1,17 @@
 #lang racket
 
+;; Takikawa 2013 — randomized theorem-shape testing for the 2013 model.
+;;
+;; Exports `run-theorem-random-checks!` plus the sub-runners
+;; `run-step-correspondence!`, `run-machine-trace-correspondence!`,
+;; `run-blame-approximation!`, `run-contract-correspondence!`,
+;; `run-mark-frame-correspondence!`.
+;;
+;; Lean counterparts:
+;;   - run-step-correspondence!            <->  progress / preservation (Theorems.lean)
+;;   - run-machine-trace-correspondence!   <->  stepMachine_{sound,complete} (InterpreterTheorems.lean)
+;;   - run-blame-approximation!            <->  blameTheorem (Theorems.lean)
+
 (require json
          racket/list
          racket/match

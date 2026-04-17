@@ -1,5 +1,16 @@
 #lang racket
 
+;; Dimoulas et al. 2012 — "Complete Monitors for Behavioral Contracts" (ESOP 2012).
+;; Standalone operational Redex model for the 2012 CM calculus.
+;;
+;; Paper / Lean correspondence:
+;;   grammar (cm2012-lang)               <->  Dimoulas2012.Syntax (lambda/mu/ite/mon/check/own/ctcError)
+;;   reduction `cm2012-red`              <->  Dimoulas2012.Syntax.Step (indy flavor)
+;;   typing `cm2012-tc`                  <->  Dimoulas2012.Judgments.HasType
+;;
+;; The `dimoulas2012/blame.rkt` proof-layer is a separate presentation
+;; of the 2012 well-formedness judgments over the full 2013 grammar.
+
 (require redex/reduction-semantics
          rackunit)
 

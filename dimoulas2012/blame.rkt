@@ -1,7 +1,20 @@
 #lang racket
 
+;; Dimoulas et al. 2012 — proof-layer Redex model for complete monitoring.
+;; Built on top of the 2013 grammar (takikawa2013/model.rkt) but adds the
+;; well-formedness judgments used in the dissertation's §5.1 proof.
+;;
+;; Paper / Lean correspondence:
+;;   `wfsp`        <->  Dimoulas2012.Judgments.WFSource
+;;   `wfctc`       <->  Dimoulas2012.Judgments.ContractWF (source variant)
+;;   `wfctci`      <->  Dimoulas2012.Judgments.ContractWF (intermediate variant)
+;;   `wfip`        <->  Dimoulas2012.Judgments.WFInterm (= LooseWF alias)
+;;   `lwfp`        <->  Dimoulas2012.Judgments.LooseWF
+;;   `ctcwitnessp` <->  Dimoulas2012.Judgments.IsContractWitness
+;;   `blame-red`   <->  Dimoulas2012.Syntax.Step (indy flavor)
+
 (require redex/reduction-semantics
-         "model.rkt")
+         "../takikawa2013/model.rkt")
 
 (provide blame-lang blame-red
          wfsp wfctc wfctci wfip lwfp wfst

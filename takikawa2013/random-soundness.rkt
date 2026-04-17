@@ -1,5 +1,12 @@
 #lang racket
 
+;; Takikawa 2013 — randomized soundness testing campaigns.
+;;
+;; Generates well-typed mixed programs and checks preservation-style
+;; properties on bounded reductions.
+;;
+;; Lean counterpart: Takikawa2013.Theorems.{preservation, preservation_loose}.
+
 (require json
          racket/list
          racket/match

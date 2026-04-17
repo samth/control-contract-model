@@ -1,5 +1,10 @@
 #lang racket
 
+;; Takikawa 2013 — randomized typing comparisons.
+;; Redex vs. Lean vs. Typed-Racket on the 2013 grammar.
+;;
+;; Lean counterpart: Takikawa2013.Typechecker.{Basic,Theorems,Testing}.
+
 (require json
          racket/list
          racket/match

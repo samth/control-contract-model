@@ -1,12 +1,24 @@
 #lang racket
 
+;; Dimoulas 2012 — randomized theorem-shape testing.
+;;
+;; Rediscovers known-false theorem shapes (e.g., single-step
+;; preservation_loose is wrong — the correct form is multi-step
+;; convergence) and validates candidate statements before proof work.
+;;
+;; Lean counterparts:
+;;   - ContractModels.Dimoulas2012.Preservation.preservation{,_intermediate,_multi}
+;;   - ContractModels.Dimoulas2012.Progress.progress_intermediate
+;;   - ContractModels.Dimoulas2012.CompleteMonitoring.completeMonitoring
+;;   - ContractModels.Dimoulas2012.NotComplete.{lax,picky}_not_complete
+
 (require racket/list
          racket/match
          racket/pretty
          rackunit
          redex/reduction-semantics
-         "cm2012.rkt"
-         "random-cm2012.rkt")
+         "model.rkt"
+         "random.rkt")
 
 (provide run-cm2012-theorem-checks!)
 

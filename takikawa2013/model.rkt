@@ -1,6 +1,16 @@
 #lang racket
 
-;; base language for abort/ctc model
+;; Takikawa et al. 2013 — "Constraining Delimited Control with Contracts" (ESOP 2013).
+;; Core Redex model: grammar, typing judgment `tc`, reduction relation `abort-red`.
+;;
+;; Paper / Lean correspondence:
+;;   grammar (abort-core-lang, abort-lang)    <->  Takikawa2013.Syntax
+;;   typing judgment `tc`                     <->  Takikawa2013.Typing.HasType
+;;   reduction `abort-red`                    <->  Takikawa2013.Reduction.Step
+;;
+;; Also used as the base language for the 2012 proof layer
+;; (`dimoulas2012/blame.rkt` requires this file's grammar to carry the
+;; well-formedness judgments for the complete-monitoring proof).
 
 (require redex/pict
          rackunit
