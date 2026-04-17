@@ -33,13 +33,13 @@
 
 (define-runtime-path model-dir ".")
 (define project-root
-  (simplify-path (build-path model-dir 'up)))
+  (simplify-path (build-path model-dir 'up 'up)))
 (define lean-typechecker-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "TypecheckerMain.lean")))
+   (build-path project-root "ContractModels" "Takikawa2013" "Main" "Typechecker.lean")))
 (define built-lean-typechecker-path
   (simplify-path
-   (build-path project-root ".lake" "build" "bin" "tsth-typechecker")))
+   (build-path project-root ".lake" "build" "bin" "takikawa2013-typechecker")))
 
 (define typing-constructs
   '(if

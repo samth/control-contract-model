@@ -25,16 +25,17 @@
          random-type)
 
 (define-runtime-path model-dir ".")
+;; model-dir is control-contract-model/dimoulas2012/; project root is two levels up.
 (define project-root
-  (simplify-path (build-path model-dir 'up)))
+  (simplify-path (build-path model-dir 'up 'up)))
 (define lean-runner-source-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "CM2012Main.lean")))
+   (build-path project-root "ContractModels" "Dimoulas2012" "Main" "Checker.lean")))
 (define lean-runner-exec-source-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "CM2012Executable.lean")))
+   (build-path project-root "ContractModels" "Dimoulas2012" "Executable" "Semantics.lean")))
 (define built-lean-runner-path
-  (simplify-path (build-path project-root ".lake" "build" "bin" "tsth-cm2012")))
+  (simplify-path (build-path project-root ".lake" "build" "bin" "dimoulas2012-checker")))
 
 (define (built-runner-fresh?)
   (and (file-exists? built-lean-runner-path)

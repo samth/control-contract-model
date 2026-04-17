@@ -23,13 +23,13 @@
 
 (define-runtime-path model-dir ".")
 (define project-root
-  (simplify-path (build-path model-dir 'up)))
+  (simplify-path (build-path model-dir 'up 'up)))
 (define lean-soundness-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "SoundnessMain.lean")))
+   (build-path project-root "ContractModels" "Takikawa2013" "Main" "Soundness.lean")))
 (define built-lean-soundness-path
   (simplify-path
-   (build-path project-root ".lake" "build" "bin" "tsth-soundness")))
+   (build-path project-root ".lake" "build" "bin" "takikawa2013-soundness")))
 
 (define default-lean-soundness-command
   (if (file-exists? built-lean-soundness-path)

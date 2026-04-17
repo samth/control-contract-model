@@ -41,11 +41,11 @@
 
 (define-runtime-path model-dir ".")
 (define project-root
-  (simplify-path (build-path model-dir 'up)))
+  (simplify-path (build-path model-dir 'up 'up)))
 (define lean-main-path
-  (simplify-path (build-path project-root "RequestProject" "TSTH" "InterpreterMain.lean")))
+  (simplify-path (build-path project-root "ContractModels" "Takikawa2013" "Main" "Interpreter.lean")))
 (define built-lean-runner-path
-  (simplify-path (build-path project-root ".lake" "build" "bin" "tsth-interpreter")))
+  (simplify-path (build-path project-root ".lake" "build" "bin" "takikawa2013-interpreter")))
 
 (define no-lean-answer
   (gensym 'no-lean-answer))

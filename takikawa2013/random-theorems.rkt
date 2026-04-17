@@ -32,16 +32,16 @@
 
 (define-runtime-path model-dir ".")
 (define project-root
-  (simplify-path (build-path model-dir 'up)))
+  (simplify-path (build-path model-dir 'up 'up)))
 (define lean-oracle-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "TestOracleMain.lean")))
+   (build-path project-root "ContractModels" "Takikawa2013" "Main" "TestOracle.lean")))
 (define lean-interpreter-path
   (simplify-path
-   (build-path project-root "RequestProject" "TSTH" "Interpreter.lean")))
+   (build-path project-root "ContractModels" "Takikawa2013" "Interpreter.lean")))
 (define built-lean-oracle-path
   (simplify-path
-   (build-path project-root ".lake" "build" "bin" "tsth-test-oracle")))
+   (build-path project-root ".lake" "build" "bin" "takikawa2013-test-oracle")))
 
 (define (built-lean-oracle-fresh?)
   (and (file-exists? built-lean-oracle-path)
