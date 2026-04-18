@@ -20,6 +20,7 @@
          lean-run-batches
          query->lean-jsexpr
          lean-jsexpr->expr
+         lean-encodable?
          gen-expr
          random-label
          random-type)
@@ -44,8 +45,10 @@
                 (file-or-directory-modify-seconds lean-runner-exec-source-path)))))
 
 (define labels '("τ" "υ"))
+;; The Lean CM2012 formalization has base types Num and Bool only; Redex's
+;; Unit type / `unit` literal are Redex-only extensions that Lean rejects.
 (define observable-types
-  '(Num Bool Unit
+  '(Num Bool
         (→ Num Num)
         (→ Bool Bool)
         (→ Num Bool)))
@@ -151,16 +154,8 @@
           ,(lean-jsexpr->expr e3))]
     [`("mu" ,x ,t ,body)
      `(μ (,(string->symbol x) : ,(lean-jsexpr->ty t)) ,(lean-jsexpr->expr body))]
-    [`("unop" ,op ,e1)
-     `(,(case op
-          [("neg") '-]
-          [("not") 'not]
-          [("zero?") 'zero?]
-          [("number?") 'number?]
-          [("boolean?") 'boolean?]
-          [("unit?") 'unit?]
-          [else (error 'lean-jsexpr->expr "unknown unop ~s" op)])
-       ,(lean-jsexpr->expr e1))]
+    [`("zero" ,e1)
+     `(zero? ,(lean-jsexpr->expr e1))]
     [`("monitor" ,k ,l ,j0 ,ctc ,e1)
      `(monitor ,(lean-jsexpr->contract ctc)
                ,(lean-jsexpr->expr e1)
@@ -181,11 +176,17 @@
     [`(-> ,c1 ,c2) `("arr" ,(contract->lean-jsexpr c1) ,(contract->lean-jsexpr c2))]
     [else (error 'contract->lean-jsexpr "unexpected contract ~s" c)]))
 
+;; Paper's CM2012 Expr has no `unop` constructor — only `zero`, `binop`,
+;; and `if`. Redex adds `not`, unary `-`, `number?`, `boolean?`, `unit?` as
+;; extension primitives for evaluation testing. We desugar the two that
+;; have direct Lean encodings and raise `'lean-unencodable` for the rest;
+;; callers catch that and drop the query from the Lean batch.
 (define (expr->lean-jsexpr e)
   (match e
     [(? integer?) `("int" ,e)]
     [(? boolean?) `("bool" ,e)]
-    ['unit '("unit")]
+    ;; Redex has Unit / `unit`; Lean CM2012 doesn't. Mark for filtering.
+    ['unit (raise 'lean-unencodable)]
     [(? symbol?) `("var" ,(symbol->string e))]
     [`(λ (,x : ,t) ,body)
      `("lam" ,(symbol->string x) ,(ty->lean-jsexpr t) ,(expr->lean-jsexpr body))]
@@ -193,16 +194,15 @@
      `("if" ,(expr->lean-jsexpr e1) ,(expr->lean-jsexpr e2) ,(expr->lean-jsexpr e3))]
     [`(μ (,x : ,t) ,body)
      `("mu" ,(symbol->string x) ,(ty->lean-jsexpr t) ,(expr->lean-jsexpr body))]
+    [`(zero? ,e1)
+     `("zero" ,(expr->lean-jsexpr e1))]
+    [`(not ,e1)
+     `("if" ,(expr->lean-jsexpr e1) ("bool" #f) ("bool" #t))]
+    [`(- ,e1)
+     `("binop" "-" ("int" 0) ,(expr->lean-jsexpr e1))]
     [`(,op ,e1)
-     #:when (memq op '(- not zero? number? boolean? unit?))
-     `("unop" ,(case op
-                 [(-) "neg"]
-                 [(not) "not"]
-                 [(zero?) "zero?"]
-                 [(number?) "number?"]
-                 [(boolean?) "boolean?"]
-                 [(unit?) "unit?"])
-               ,(expr->lean-jsexpr e1))]
+     #:when (memq op '(number? boolean? unit?))
+     (raise 'lean-unencodable)]
     [`(,e1 ,e2)
      `("app" ,(expr->lean-jsexpr e1) ,(expr->lean-jsexpr e2))]
     [`(monitor ,ctc ,e1 ,k ,l ,j)
@@ -349,16 +349,18 @@
        (define inner (gen-expr 0 '() k t))
        (define c (gen-contract 0 (list k) (list l) "j" t))
        `(monitor ,c (own ,inner ,k) ,k ,l "j"))))
+  ;; The Lean CM2012 formalization has no `number?`/`boolean?`/`unit?`
+  ;; runtime type predicates, so don't generate them — `expr->lean-jsexpr`
+  ;; would reject them and the sample would be discarded anyway.
+  ;; `not` and unary `-` are generated because they desugar into the
+  ;; Lean model (see `expr->lean-jsexpr`).
   (define (type-specific-choices smaller)
     (match t
       ['Num
        (list (λ () `(- ,(gen-expr smaller env l 'Num))))]
       ['Bool
        (list (λ () `(not ,(gen-expr smaller env l 'Bool)))
-             (λ () `(zero? ,(gen-expr smaller env l 'Num)))
-             (λ () `(number? ,(gen-expr smaller env l (random-type))))
-             (λ () `(boolean? ,(gen-expr smaller env l (random-type))))
-             (λ () `(unit? ,(gen-expr smaller env l (random-type)))))]
+             (λ () `(zero? ,(gen-expr smaller env l 'Num))))]
       [`(→ ,t1 ,t2)
        (list (λ ()
                (define x (fresh-name 'x env))
@@ -385,6 +387,15 @@
 (define (query->lean-jsexpr expr l)
   (hasheq 'expr (expr->lean-jsexpr expr)
           'sourceLabel l))
+
+;; True iff `expr->lean-jsexpr` can encode `expr` for the Lean CM2012
+;; checker. The paper's Expr has no `not`/unary-`-`-type-predicate forms
+;; other than `zero?`; `expr->lean-jsexpr` desugars `not` and unary `-`
+;; but has to give up on `number?`/`boolean?`/`unit?`.
+(define (lean-encodable? e)
+  (with-handlers ([(λ (v) (eq? v 'lean-unencodable)) (λ (_) #f)])
+    (expr->lean-jsexpr e)
+    #t))
 
 (define (check-sample! expected-type expr l lean-result)
   (define redex-types (cm2012-types expr))
@@ -416,10 +427,11 @@
                                    #:verbose? [verbose? #t])
   (random-seed seed)
   (define samples*
-    (for/list ([i (in-range samples)])
-      (define l (random-label))
-      (define t (random-type))
-      (list l t (gen-expr expr-fuel '() l t))))
+    (filter (λ (sample) (lean-encodable? (third sample)))
+            (for/list ([i (in-range samples)])
+              (define l (random-label))
+              (define t (random-type))
+              (list l t (gen-expr expr-fuel '() l t)))))
   (define coverage
     (for/fold ([counts (hash)]) ([sample (in-list samples*)])
       (increment-count counts (top-tag (third sample)))))

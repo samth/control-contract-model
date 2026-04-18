@@ -399,8 +399,13 @@
       (define label (random-label))
       (define type (random-type))
       (gen-expr expr-fuel '() label type)))
+  ;; Drop candidates the Lean CM2012 executable can't parse — `number?`,
+  ;; `boolean?`, `unit?` predicates etc. that have no Lean counterpart.
+  ;; Some hand-crafted interesting-candidate-exprs still include them,
+  ;; and `extra-candidates` might too if the generator changes.
   (define candidates
-    (remove-duplicates (append base-candidates extra-candidates) equal?))
+    (filter lean-encodable?
+            (remove-duplicates (append base-candidates extra-candidates) equal?)))
   (define candidate-results (query-results candidates))
   (define ce-sound-exact
     (find-step-sound-exact-counterexample candidates candidate-results))
