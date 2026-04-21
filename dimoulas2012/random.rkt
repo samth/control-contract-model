@@ -177,10 +177,15 @@
     [else (error 'contract->lean-jsexpr "unexpected contract ~s" c)]))
 
 ;; Paper's CM2012 Expr has no `unop` constructor — only `zero`, `binop`,
-;; and `if`. Redex adds `not`, unary `-`, `number?`, `boolean?`, `unit?` as
-;; extension primitives for evaluation testing. We desugar the two that
-;; have direct Lean encodings and raise `'lean-unencodable` for the rest;
-;; callers catch that and drop the query from the Lean batch.
+;; and `if`. Redex's grammar extends with `not`, unary `-`,
+;; `number?`, `boolean?`, `unit?`, and Unit values. Only `zero?` has a
+;; direct Lean encoding (to the `zero` tag); the rest are marked
+;; `'lean-unencodable` so callers can drop those queries from the Lean
+;; batch. We intentionally do NOT desugar `not` to `if` or unary `-` to
+;; `(binop - 0 e)`: the eval-trace simulation check compares
+;; term-by-term, so introducing desugared forms in the Lean round-trip
+;; while Redex keeps the originals would generate spurious mismatches
+;; on values like `(λ x. (not #t))`.
 (define (expr->lean-jsexpr e)
   (match e
     [(? integer?) `("int" ,e)]
@@ -196,12 +201,8 @@
      `("mu" ,(symbol->string x) ,(ty->lean-jsexpr t) ,(expr->lean-jsexpr body))]
     [`(zero? ,e1)
      `("zero" ,(expr->lean-jsexpr e1))]
-    [`(not ,e1)
-     `("if" ,(expr->lean-jsexpr e1) ("bool" #f) ("bool" #t))]
-    [`(- ,e1)
-     `("binop" "-" ("int" 0) ,(expr->lean-jsexpr e1))]
     [`(,op ,e1)
-     #:when (memq op '(number? boolean? unit?))
+     #:when (memq op '(not - number? boolean? unit?))
      (raise 'lean-unencodable)]
     [`(,e1 ,e2)
      `("app" ,(expr->lean-jsexpr e1) ,(expr->lean-jsexpr e2))]
@@ -349,18 +350,17 @@
        (define inner (gen-expr 0 '() k t))
        (define c (gen-contract 0 (list k) (list l) "j" t))
        `(monitor ,c (own ,inner ,k) ,k ,l "j"))))
-  ;; The Lean CM2012 formalization has no `number?`/`boolean?`/`unit?`
-  ;; runtime type predicates, so don't generate them — `expr->lean-jsexpr`
-  ;; would reject them and the sample would be discarded anyway.
-  ;; `not` and unary `-` are generated because they desugar into the
-  ;; Lean model (see `expr->lean-jsexpr`).
+  ;; The Lean CM2012 formalization only has `zero?` among the Redex
+  ;; `unop` family (no `not`, unary `-`, `number?`, `boolean?`, or
+  ;; `unit?`). Generating the other unops would get filtered by
+  ;; `expr->lean-jsexpr` raising `'lean-unencodable`, so don't bother
+  ;; producing them in the first place — it just reduces effective
+  ;; sample count.
   (define (type-specific-choices smaller)
     (match t
-      ['Num
-       (list (λ () `(- ,(gen-expr smaller env l 'Num))))]
+      ['Num '()]
       ['Bool
-       (list (λ () `(not ,(gen-expr smaller env l 'Bool)))
-             (λ () `(zero? ,(gen-expr smaller env l 'Num))))]
+       (list (λ () `(zero? ,(gen-expr smaller env l 'Num))))]
       [`(→ ,t1 ,t2)
        (list (λ ()
                (define x (fresh-name 'x env))

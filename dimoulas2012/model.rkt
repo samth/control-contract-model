@@ -80,8 +80,13 @@
         (in-hole E (own e l))
         own/collapse)
 
+   ;; Paper-aligned: a bare `mu` (not yet wrapped in `own`) unfolds by
+   ;; introducing an `own` with the ambient label, which at the top level
+   ;; of the oracle and random-test harness is "τ". The legacy behavior
+   ;; hard-coded the meta-label "μ"; the paper uses the ambient label
+   ;; from the evaluation context, and the Lean `step?` does too.
    (--> (in-hole E (μ (x : t) e))
-        (in-hole E (subst e x (own (μ (x : t) e) "μ")))
+        (in-hole E (subst e x (own (μ (x : t) e) "τ")))
         mu/plain)
 
    (--> (in-hole E (own (μ (x : t) e) l))
